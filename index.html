@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Volcano Run FPS</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div id="hud">
+    <div class="stat">Score: <span id="score">0</span></div>
+    <div class="stat">Health: <span id="health">100</span></div>
+    <div class="stat">Ammo: <span id="ammo">15</span></div>
+    <div class="stat">Wave: <span id="wave">1</span></div>
+  </div>
+
+  <div id="crosshair"></div>
+
+  <div id="modal" class="backdrop">
+    <div class="panel">
+      <h1>Volcano Run</h1>
+      <p>WASD to move · Mouse to look · Click to shoot · R to reload</p>
+      <p>Stay alive inside the lava arena and clear as many drones as possible.</p>
+      <button id="start-btn">Enter the Arena</button>
+    </div>
+  </div>
+
+  <canvas id="scene"></canvas>
+
+  <script type="module" src="main.js"></script>
+</body>
+</html>
