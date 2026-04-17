@@ -39,15 +39,28 @@ class EncompassClient:
         return self._token is not None and time.time() < self._token_expires_at - 30
 
     def _authenticate(self) -> None:
-        # Encompass Resource Owner Password Credentials grant. The admin user's
-        # name is combined with the instance ID: "<user>@encompass:<instance>".
-        data = {
-            "grant_type": "password",
-            "username": f"{self.cfg.encompass_admin_user}@encompass:{self.cfg.encompass_instance_id}",
-            "password": self.cfg.encompass_admin_password,
-            "client_id": self.cfg.encompass_client_id,
-            "client_secret": self.cfg.encompass_client_secret,
-        }
+        # Two supported flows:
+        #  - "client_credentials": the API client is bound in Encompass Admin
+        #    Tools to an API user (User ID has "API User" checked and Client
+        #    ID = our client_id). No user password is used.
+        #  - "password" (default): Resource Owner Password grant — a real user
+        #    authenticates with username + password alongside the client creds.
+        if self.cfg.encompass_grant_type == "client_credentials":
+            data = {
+                "grant_type": "client_credentials",
+                "client_id": self.cfg.encompass_client_id,
+                "client_secret": self.cfg.encompass_client_secret,
+                "scope": f"lp urla amc pub",
+                "instance_id": self.cfg.encompass_instance_id,
+            }
+        else:
+            data = {
+                "grant_type": "password",
+                "username": f"{self.cfg.encompass_admin_user}@encompass:{self.cfg.encompass_instance_id}",
+                "password": self.cfg.encompass_admin_password,
+                "client_id": self.cfg.encompass_client_id,
+                "client_secret": self.cfg.encompass_client_secret,
+            }
         resp = self._client.post(
             "/oauth2/v1/token",
             data=data,

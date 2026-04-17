@@ -19,6 +19,8 @@ services:
         value: TEBE11221740
       - key: ENCOMPASS_NEW_HIRES_ORG_NAME
         value: New Hires
+      - key: ENCOMPASS_GRANT_TYPE
+        value: client_credentials
       - key: EMAIL_DOMAIN
         value: mortgageright.com
       - key: POLL_INTERVAL_SECONDS
