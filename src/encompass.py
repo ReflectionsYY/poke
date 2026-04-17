@@ -93,11 +93,14 @@ class EncompassClient:
         self._load_personas()
 
     def _load_new_hires_org(self) -> None:
-        resp = self._request(
-            "GET",
-            "/encompass/v1/company/groups",
-            params={"type": "Organization"},
-        )
+        # Encompass moved org admin to v3; fall back to v1 "groups" for older instances.
+        resp = self._request("GET", "/encompass/v3/company/orgs")
+        if resp.status_code == 404:
+            resp = self._request(
+                "GET",
+                "/encompass/v1/company/groups",
+                params={"type": "Organization"},
+            )
         if resp.status_code != 200:
             raise EncompassError(
                 f"Failed to list organizations: {resp.status_code} {resp.text}"
@@ -106,14 +109,20 @@ class EncompassClient:
         for org in resp.json():
             if org.get("name", "").strip().lower() == target:
                 self._new_hires_org = org
-                log.info("Resolved '%s' org id=%s", org["name"], org.get("id"))
+                log.info(
+                    "Resolved '%s' org id=%s",
+                    org["name"],
+                    org.get("id") or org.get("entityId"),
+                )
                 return
         raise EncompassError(
             f"Org '{self.cfg.new_hires_org_name}' not found in instance"
         )
 
     def _load_personas(self) -> None:
-        resp = self._request("GET", "/encompass/v1/company/personas")
+        resp = self._request("GET", "/encompass/v3/company/personas")
+        if resp.status_code == 404:
+            resp = self._request("GET", "/encompass/v1/company/personas")
         if resp.status_code != 200:
             raise EncompassError(
                 f"Failed to list personas: {resp.status_code} {resp.text}"
