@@ -1,3 +1,5 @@
+import argparse
+import json
 import logging
 import signal
 import sys
@@ -28,9 +30,7 @@ log = logging.getLogger("encompass_autocreate")
 
 def setup_logging(cfg: Config) -> None:
     Path(cfg.log_file).parent.mkdir(parents=True, exist_ok=True)
-    fmt = logging.Formatter(
-        "%(asctime)s %(levelname)s %(name)s - %(message)s"
-    )
+    fmt = logging.Formatter("%(asctime)s %(levelname)s %(name)s - %(message)s")
     root = logging.getLogger()
     root.setLevel(cfg.log_level)
     for h in list(root.handlers):
@@ -43,11 +43,15 @@ def setup_logging(cfg: Config) -> None:
     root.addHandler(stream_h)
 
 
-def resolve_user_id(hire: NewHire, encompass: EncompassClient) -> str:
+def resolve_user_id(
+    hire: NewHire, encompass: EncompassClient, dry_run: bool = False
+) -> str:
     base = base_user_id(hire)
     if not hire.rehire:
         return base
-    # Rehire: start at "<base>2" and increment until we find an unused slot.
+    if dry_run:
+        # Can't call Encompass to probe for collisions; report the first rehire slot.
+        return rehire_user_id(hire, 2)
     suffix = 2
     while True:
         candidate = rehire_user_id(hire, suffix)
@@ -56,10 +60,14 @@ def resolve_user_id(hire: NewHire, encompass: EncompassClient) -> str:
         suffix += 1
 
 
-def build_personas(hire: NewHire, encompass: EncompassClient) -> list[dict[str, Any]]:
+def build_personas(
+    hire: NewHire, encompass: EncompassClient, dry_run: bool = False
+) -> list[dict[str, Any]]:
     names = list(BASELINE_PERSONAS)
     if hire.job_title:
         names.append(hire.job_title)
+    if dry_run:
+        return [{"entityType": "Persona", "entityName": n} for n in names]
     return [encompass.persona_ref(n) for n in names]
 
 
@@ -68,6 +76,7 @@ def process_submission(
     encompass: EncompassClient,
     state: State,
     cfg: Config,
+    dry_run: bool = False,
 ) -> None:
     sub_id = str(submission.get("id", ""))
     if state.is_processed(sub_id):
@@ -75,15 +84,31 @@ def process_submission(
         return
 
     hire = parse_submission(submission)
-    user_id = resolve_user_id(hire, encompass)
-    personas = build_personas(hire, encompass)
+    user_id = resolve_user_id(hire, encompass, dry_run=dry_run)
+    personas = build_personas(hire, encompass, dry_run=dry_run)
+    org_ref = (
+        {"entityType": "Group", "entityName": cfg.new_hires_org_name}
+        if dry_run
+        else encompass.new_hires_org_ref()
+    )
     payload = build_encompass_payload(
         hire=hire,
         user_id=user_id,
         email_domain=cfg.email_domain,
         persona_refs=personas,
-        org_ref=encompass.new_hires_org_ref(),
+        org_ref=org_ref,
     )
+
+    if dry_run:
+        log.info(
+            "[DRY RUN] submission=%s would create user id=%s (rehire=%s, title=%s)\n%s",
+            sub_id,
+            user_id,
+            hire.rehire,
+            hire.job_title,
+            json.dumps(payload, indent=2),
+        )
+        return
 
     log.info(
         "Creating Encompass user id=%s (submission=%s, rehire=%s, title=%s)",
@@ -98,8 +123,11 @@ def process_submission(
         log.info("Created user %s", user_id)
     except DuplicateUserError:
         state.mark_processed(sub_id, user_id, "duplicate")
-        log.warning("User %s already exists; marking submission %s as duplicate",
-                    user_id, sub_id)
+        log.warning(
+            "User %s already exists; marking submission %s as duplicate",
+            user_id,
+            sub_id,
+        )
 
 
 def poll_once(
@@ -107,23 +135,29 @@ def poll_once(
     encompass: EncompassClient,
     state: State,
     cfg: Config,
+    dry_run: bool = False,
 ) -> None:
-    last_seen = state.get_last_seen()
+    last_seen = state.get_last_seen() if not dry_run else None
     submissions = jotform.list_new_submissions(last_seen)
     if not submissions:
-        log.debug("No new submissions")
+        log.info("No new submissions")
         return
-    log.info("Found %d new submission(s)", len(submissions))
+    log.info("Found %d submission(s)", len(submissions))
+
+    if dry_run:
+        # Only process the single most recent submission in dry-run mode.
+        submissions = submissions[-1:]
 
     max_id = last_seen or ""
     for sub in submissions:
         sub_id = str(sub.get("id", ""))
         try:
-            process_submission(sub, encompass, state, cfg)
+            process_submission(sub, encompass, state, cfg, dry_run=dry_run)
         except (EncompassError, ValueError) as e:
             log.error("Submission %s failed: %s", sub_id, e)
-            state.mark_processed(sub_id, "", f"error: {e}")
-        if sub_id > max_id:
+            if not dry_run:
+                state.mark_processed(sub_id, "", f"error: {e}")
+        if not dry_run and sub_id > max_id:
             max_id = sub_id
             state.set_last_seen(max_id)
 
@@ -137,10 +171,32 @@ def _handle_signal(signum, _frame):
     _stop = True
 
 
+def _parse_args() -> argparse.Namespace:
+    p = argparse.ArgumentParser(description="Encompass auto user creation")
+    p.add_argument(
+        "--once",
+        action="store_true",
+        help="Run a single poll cycle and exit (useful for cron/scheduled runs).",
+    )
+    p.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Fetch the most recent submission, log the would-be Encompass "
+        "payload, and exit. Encompass API is only hit for auth + lookups, "
+        "never for user creation.",
+    )
+    return p.parse_args()
+
+
 def main() -> int:
+    args = _parse_args()
     cfg = load_config()
     setup_logging(cfg)
-    log.info("Starting encompass auto-user service")
+    log.info(
+        "Starting encompass auto-user service (once=%s, dry_run=%s)",
+        args.once,
+        args.dry_run,
+    )
 
     signal.signal(signal.SIGTERM, _handle_signal)
     signal.signal(signal.SIGINT, _handle_signal)
@@ -150,7 +206,21 @@ def main() -> int:
     encompass = EncompassClient(cfg)
 
     try:
-        encompass.load_lookups()
+        if not args.dry_run:
+            encompass.load_lookups()
+        else:
+            # Still authenticate + resolve lookups so we surface auth/org errors,
+            # but fall back to name-only refs if the lookups fail so the user can
+            # at least see the mapped payload.
+            try:
+                encompass.load_lookups()
+            except EncompassError as e:
+                log.warning("Dry-run lookup failed (continuing with name-only refs): %s", e)
+
+        if args.once or args.dry_run:
+            poll_once(jotform, encompass, state, cfg, dry_run=args.dry_run)
+            return 0
+
         while not _stop:
             try:
                 poll_once(jotform, encompass, state, cfg)

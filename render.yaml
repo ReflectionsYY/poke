@@ -1,0 +1,46 @@
+services:
+  - type: worker
+    name: encompass-autocreate
+    runtime: python
+    plan: starter
+    buildCommand: pip install -r requirements.txt
+    startCommand: python -m src.main
+    autoDeploy: true
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.11"
+      - key: JOTFORM_FORM_ID
+        value: "222484018864157"
+      - key: JOTFORM_BASE_URL
+        value: https://api.jotform.com
+      - key: ENCOMPASS_BASE_URL
+        value: https://api.elliemae.com
+      - key: ENCOMPASS_INSTANCE_ID
+        value: TEBE11221740
+      - key: ENCOMPASS_NEW_HIRES_ORG_NAME
+        value: New Hires
+      - key: EMAIL_DOMAIN
+        value: mortgageright.com
+      - key: POLL_INTERVAL_SECONDS
+        value: "300"
+      - key: STATE_DB_PATH
+        value: /var/data/state.sqlite3
+      - key: LOG_LEVEL
+        value: INFO
+      - key: LOG_FILE
+        value: /var/data/service.log
+      # Secrets — set these in the Render dashboard, not here:
+      - key: JOTFORM_API_KEY
+        sync: false
+      - key: ENCOMPASS_CLIENT_ID
+        sync: false
+      - key: ENCOMPASS_CLIENT_SECRET
+        sync: false
+      - key: ENCOMPASS_ADMIN_USER
+        sync: false
+      - key: ENCOMPASS_ADMIN_PASSWORD
+        sync: false
+    disk:
+      name: state
+      mountPath: /var/data
+      sizeGB: 1
