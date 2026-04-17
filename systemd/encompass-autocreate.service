@@ -1,0 +1,26 @@
+[Unit]
+Description=Encompass auto user creation from Jotform
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+# Adjust User, WorkingDirectory, and the venv path for your server.
+User=encompass
+WorkingDirectory=/opt/encompass-autocreate
+EnvironmentFile=/opt/encompass-autocreate/.env
+ExecStart=/opt/encompass-autocreate/.venv/bin/python -m src.main
+Restart=on-failure
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+
+# Hardening
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/opt/encompass-autocreate
+
+[Install]
+WantedBy=multi-user.target
