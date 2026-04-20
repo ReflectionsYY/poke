@@ -23,6 +23,7 @@ class Config:
     encompass_client_id: str
     encompass_client_secret: str
     encompass_grant_type: str
+    encompass_scope: str
     encompass_admin_user: str
     encompass_admin_password: str
     new_hires_org_name: str
@@ -59,6 +60,7 @@ def load_config() -> Config:
         encompass_client_id=_require("ENCOMPASS_CLIENT_ID"),
         encompass_client_secret=_require("ENCOMPASS_CLIENT_SECRET"),
         encompass_grant_type=grant,
+        encompass_scope=os.getenv("ENCOMPASS_SCOPE", "").strip(),
         encompass_admin_user=admin_user,
         encompass_admin_password=admin_password,
         new_hires_org_name=os.getenv("ENCOMPASS_NEW_HIRES_ORG_NAME", "New Hires"),

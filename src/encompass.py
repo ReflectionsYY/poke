@@ -50,9 +50,10 @@ class EncompassClient:
                 "grant_type": "client_credentials",
                 "client_id": self.cfg.encompass_client_id,
                 "client_secret": self.cfg.encompass_client_secret,
-                "scope": f"lp urla amc pub",
                 "instance_id": self.cfg.encompass_instance_id,
             }
+            if self.cfg.encompass_scope:
+                data["scope"] = self.cfg.encompass_scope
         else:
             data = {
                 "grant_type": "password",
