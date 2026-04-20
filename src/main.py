@@ -1,6 +1,7 @@
 import argparse
 import json
 import logging
+import re
 import signal
 import sys
 import time
@@ -63,9 +64,12 @@ def resolve_user_id(
 def build_personas(
     hire: NewHire, encompass: EncompassClient, dry_run: bool = False
 ) -> list[dict[str, Any]]:
-    names = list(BASELINE_PERSONAS)
-    if hire.job_title:
-        names.append(hire.job_title)
+    names: list[str] = list(BASELINE_PERSONAS)
+    # Job Title can combine multiple personas, e.g. "Branch Manager/ Loan Officer".
+    for part in re.split(r"[/,]", hire.job_title or ""):
+        part = part.strip()
+        if part and part not in names:
+            names.append(part)
     if dry_run:
         return [{"entityType": "Persona", "entityName": n} for n in names]
     return [encompass.persona_ref(n) for n in names]
