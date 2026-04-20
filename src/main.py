@@ -138,6 +138,23 @@ def poll_once(
     dry_run: bool = False,
 ) -> None:
     last_seen = state.get_last_seen() if not dry_run else None
+
+    # First ever run: don't backfill the entire historical form. Mark the
+    # current newest submission as the cursor and wait for the next one.
+    if last_seen is None and not dry_run:
+        newest = jotform.list_new_submissions(None)
+        if newest:
+            cursor = str(newest[-1].get("id", ""))
+            state.set_last_seen(cursor)
+            log.info(
+                "First run: seeding cursor at submission %s; "
+                "will process future submissions only",
+                cursor,
+            )
+        else:
+            log.info("First run: no submissions yet")
+        return
+
     submissions = jotform.list_new_submissions(last_seen)
     if not submissions:
         log.info("No new submissions")
