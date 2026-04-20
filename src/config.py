@@ -27,6 +27,7 @@ class Config:
     encompass_admin_user: str
     encompass_admin_password: str
     new_hires_org_name: str
+    new_hires_org_id: str
 
     email_domain: str
 
@@ -64,6 +65,7 @@ def load_config() -> Config:
         encompass_admin_user=admin_user,
         encompass_admin_password=admin_password,
         new_hires_org_name=os.getenv("ENCOMPASS_NEW_HIRES_ORG_NAME", "New Hires"),
+        new_hires_org_id=os.getenv("ENCOMPASS_NEW_HIRES_ORG_ID", "").strip(),
         email_domain=os.getenv("EMAIL_DOMAIN", "mortgageright.com"),
         poll_interval_seconds=int(os.getenv("POLL_INTERVAL_SECONDS", "300")),
         state_db_path=os.getenv("STATE_DB_PATH", "./state.sqlite3"),

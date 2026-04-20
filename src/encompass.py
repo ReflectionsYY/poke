@@ -107,6 +107,19 @@ class EncompassClient:
         self._load_personas()
 
     def _load_new_hires_org(self) -> None:
+        # Shortcut: if the org ID was provided explicitly, skip the list call
+        # entirely. Useful when the client lacks permission to list orgs.
+        if self.cfg.new_hires_org_id:
+            self._new_hires_org = {
+                "id": self.cfg.new_hires_org_id,
+                "name": self.cfg.new_hires_org_name,
+            }
+            log.info(
+                "Using configured '%s' org id=%s (lookup skipped)",
+                self.cfg.new_hires_org_name,
+                self.cfg.new_hires_org_id,
+            )
+            return
         # Encompass moved org admin to v3; fall back to v1 "groups" for older instances.
         resp = self._request("GET", "/encompass/v3/company/orgs")
         if resp.status_code == 404:
@@ -117,7 +130,8 @@ class EncompassClient:
             )
         if resp.status_code != 200:
             raise EncompassError(
-                f"Failed to list organizations: {resp.status_code} {resp.text}"
+                f"Failed to list organizations: {resp.status_code} {resp.text} "
+                f"(tip: set ENCOMPASS_NEW_HIRES_ORG_ID to skip this lookup)"
             )
         target = self.cfg.new_hires_org_name.strip().lower()
         for org in resp.json():
@@ -138,9 +152,13 @@ class EncompassClient:
         if resp.status_code == 404:
             resp = self._request("GET", "/encompass/v1/company/personas")
         if resp.status_code != 200:
-            raise EncompassError(
-                f"Failed to list personas: {resp.status_code} {resp.text}"
+            log.warning(
+                "Failed to list personas: %s %s -- will fall back to "
+                "name-only persona refs on user create",
+                resp.status_code,
+                resp.text,
             )
+            return
         for persona in resp.json():
             name = persona.get("name", "")
             if name:
@@ -150,7 +168,8 @@ class EncompassClient:
     def persona_ref(self, name: str) -> dict[str, Any]:
         persona = self._persona_index.get(name.strip().lower())
         if not persona:
-            raise EncompassError(f"Persona '{name}' not found in Encompass")
+            # Lookup unavailable (no list permission) — fall back to name-only ref.
+            return {"entityType": "Persona", "entityName": name}
         return {
             "entityId": persona.get("id") or persona.get("entityId"),
             "entityType": "Persona",
