@@ -74,7 +74,12 @@ class EncompassClient:
         body = resp.json()
         self._token = body["access_token"]
         self._token_expires_at = time.time() + int(body.get("expires_in", 3600))
-        log.info("Acquired Encompass access token")
+        log.info(
+            "Acquired Encompass access token (granted_scopes=%r, token_type=%s, expires_in=%s)",
+            body.get("scope"),
+            body.get("token_type"),
+            body.get("expires_in"),
+        )
 
     def _auth_header(self) -> dict[str, str]:
         if not self._token_valid():
