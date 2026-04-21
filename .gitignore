@@ -1,0 +1,9 @@
+node_modules/
+local.settings.json
+.env
+*.log
+.vscode/
+.azurefunctions/
+bin/
+obj/
+.DS_Store
