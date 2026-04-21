@@ -42,8 +42,14 @@ app.http('jotformWebhook', {
 
       context.log(`Received submission for ${submission.fullName} (${submission.email || 'no email'})`);
 
-      if (!submission.address.city || !submission.address.state || !submission.address.zip) {
-        context.error('Submission missing required address fields', submission.address);
+      const street1 = (submission.address.streetLines[0] || '').trim();
+      if (
+        !street1 ||
+        !submission.address.city ||
+        !submission.address.state ||
+        !submission.address.zip
+      ) {
+        context.warn('Skipping submission: address is incomplete', submission.address);
         return {
           status: 200,
           jsonBody: { status: 'skipped', reason: 'missing address fields' },
