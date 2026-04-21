@@ -1,0 +1,30 @@
+{
+  "IsEncrypted": false,
+  "Values": {
+    "AzureWebJobsStorage": "",
+    "FUNCTIONS_WORKER_RUNTIME": "node",
+    "FEDEX_BASE_URL": "https://apis-sandbox.fedex.com",
+    "FEDEX_CLIENT_ID": "l74c03ac22899849fda4efdb43a133f16a",
+    "FEDEX_CLIENT_SECRET": "79faba1aaede4b0ea19e4495b698b78b",
+    "FEDEX_ACCOUNT_NUMBER": "740561073",
+    "FEDEX_SERVICE_TYPE": "FEDEX_GROUND",
+    "FEDEX_PACKAGING_TYPE": "YOUR_PACKAGING",
+    "FEDEX_DEFAULT_WEIGHT_LB": "1",
+    "RETURN_NAME": "Collin Chandler",
+    "RETURN_COMPANY": "MortgageRight",
+    "RETURN_STREET": "1 Perimeter Park S",
+    "RETURN_CITY": "Birmingham",
+    "RETURN_STATE": "AL",
+    "RETURN_ZIP": "35243",
+    "RETURN_COUNTRY": "US",
+    "RETURN_PHONE": "2057768401",
+    "SHIPPER_PHONE_FALLBACK": "2057768401",
+    "MS_TENANT_ID": "1135f8c1-79a1-4adf-b97b-7dd0db4a1a3b",
+    "MS_CLIENT_ID": "0efa43e6-adfd-43be-98aa-4b5b09d6eb01",
+    "MS_CLIENT_SECRET": "",
+    "MAIL_FROM": "labels@mortgageright.com",
+    "MAIL_TO": "karen@mortgageright.com",
+    "MAIL_CC": "collin@mortgageright.com,davis.street@mortgageright.com",
+    "WEBHOOK_SHARED_SECRET": ""
+  }
+}

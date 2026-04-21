@@ -1,0 +1,16 @@
+{
+  "name": "jotform-fedex-return-labels",
+  "version": "1.0.0",
+  "description": "Azure Function that receives Jotform submissions, generates FedEx return labels, and emails them via Microsoft Graph.",
+  "type": "module",
+  "main": "src/functions/jotformWebhook.js",
+  "scripts": {
+    "start": "func start"
+  },
+  "dependencies": {
+    "@azure/functions": "^4.5.1"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}
