@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Remote Desktop Viewer</title>
+    <style>
+      :root { color-scheme: light dark; font-family: system-ui, sans-serif; }
+      html, body { margin: 0; height: 100%; }
+      body { display: flex; flex-direction: column; background: #111; color: #eee; }
+      .connect-bar {
+        display: flex; gap: 8px; padding: 10px; background: #222; align-items: center;
+      }
+      .connect-bar input {
+        font-family: ui-monospace, Menlo, Consolas, monospace;
+        font-size: 14px; padding: 6px 8px; border-radius: 4px; border: 1px solid #555;
+        background: #111; color: #eee;
+      }
+      .connect-bar button {
+        padding: 6px 12px; border-radius: 4px; border: 1px solid #3a7; background: #2a7; color: white; cursor: pointer;
+      }
+      .connect-bar button.danger { background: #c33; border-color: #c33; }
+      .connect-bar .status { margin-left: auto; font-size: 12px; opacity: 0.8; }
+      .stage {
+        flex: 1; position: relative; display: flex; align-items: center; justify-content: center;
+      }
+      video {
+        max-width: 100%; max-height: 100%;
+        background: #000;
+        cursor: crosshair;
+      }
+      .placeholder { opacity: 0.6; font-size: 14px; }
+    </style>
+  </head>
+  <body>
+    <div class="connect-bar">
+      <input id="session-id" placeholder="Session ID (9 digits)" maxlength="11" />
+      <input id="passcode" placeholder="Passcode (6 digits)" maxlength="6" />
+      <button id="btn-connect">Connect</button>
+      <button id="btn-disconnect" class="danger" style="display:none">Disconnect</button>
+      <span class="status" id="status">Not connected</span>
+    </div>
+    <div class="stage">
+      <div class="placeholder" id="placeholder">Enter the host's session ID and passcode, then click Connect.</div>
+      <video id="remote-video" autoplay playsinline style="display:none" tabindex="0"></video>
+    </div>
+    <script src="./renderer.js"></script>
+  </body>
+</html>

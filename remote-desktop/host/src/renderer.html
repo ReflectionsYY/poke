@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Remote Desktop Host</title>
+    <style>
+      :root {
+        color-scheme: light dark;
+        font-family: system-ui, sans-serif;
+      }
+      body {
+        margin: 0;
+        padding: 24px;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+      }
+      h1 { font-size: 18px; margin: 0; }
+      .card {
+        border: 1px solid #8884;
+        border-radius: 10px;
+        padding: 16px;
+      }
+      .id {
+        font-family: ui-monospace, Menlo, Consolas, monospace;
+        font-size: 36px;
+        letter-spacing: 4px;
+        text-align: center;
+        user-select: all;
+      }
+      .passcode {
+        font-family: ui-monospace, Menlo, Consolas, monospace;
+        font-size: 28px;
+        text-align: center;
+        user-select: all;
+      }
+      .status {
+        font-size: 13px;
+        opacity: 0.75;
+      }
+      .approve-box {
+        background: #ffb3;
+        border: 1px solid #c80;
+        padding: 12px;
+        border-radius: 8px;
+      }
+      .active-banner {
+        background: #c00;
+        color: white;
+        padding: 8px 12px;
+        border-radius: 6px;
+        font-weight: 600;
+      }
+      button {
+        font-size: 14px;
+        padding: 8px 14px;
+        border-radius: 6px;
+        border: 1px solid #8884;
+        background: #fff2;
+        cursor: pointer;
+      }
+      button.primary { background: #2a7; color: white; border-color: #2a7; }
+      button.danger { background: #c33; color: white; border-color: #c33; }
+      .row { display: flex; gap: 8px; }
+    </style>
+  </head>
+  <body>
+    <h1>Remote Desktop &mdash; Host</h1>
+
+    <div class="card">
+      <div class="status">Share this ID and one-time passcode with the person who should view your screen. A new passcode is generated every session.</div>
+      <div style="margin-top: 12px">Your session ID</div>
+      <div class="id" id="session-id">&mdash;</div>
+      <div style="margin-top: 12px">One-time passcode</div>
+      <div class="passcode" id="passcode">&mdash;</div>
+      <div class="status" id="conn-status" style="margin-top: 12px">Connecting to signaling server&hellip;</div>
+    </div>
+
+    <div class="card approve-box" id="approve-box" style="display:none">
+      <div><strong>Incoming connection request</strong></div>
+      <div class="status" id="approve-detail"></div>
+      <div class="row" style="margin-top: 12px">
+        <button class="primary" id="btn-accept">Accept</button>
+        <button class="danger" id="btn-reject">Reject</button>
+      </div>
+    </div>
+
+    <div class="card active-banner" id="active-banner" style="display:none">
+      ⚠ Your screen is being viewed and controlled right now.
+      <button class="danger" id="btn-end" style="margin-left: 12px">End session</button>
+    </div>
+
+    <script type="module" src="./renderer.js"></script>
+  </body>
+</html>
