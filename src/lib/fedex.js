@@ -53,7 +53,7 @@ export async function createReturnLabel(submission) {
       phoneNumber: config.returnTo.phone,
     },
     address: {
-      streetLines: [config.returnTo.street],
+      streetLines: [config.returnTo.street, config.returnTo.street2].filter(Boolean),
       city: config.returnTo.city,
       stateOrProvinceCode: config.returnTo.state,
       postalCode: config.returnTo.zip,

@@ -23,6 +23,7 @@ export const config = {
     name: opt('RETURN_NAME', 'Collin Chandler'),
     company: opt('RETURN_COMPANY', 'MortgageRight'),
     street: opt('RETURN_STREET', '1 Perimeter Park S'),
+    street2: opt('RETURN_STREET_2', 'Suite 230'),
     city: opt('RETURN_CITY', 'Birmingham'),
     state: opt('RETURN_STATE', 'AL'),
     zip: opt('RETURN_ZIP', '35243'),

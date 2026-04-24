@@ -52,7 +52,7 @@ export async function sendLabelEmail(submission, label) {
     `Shipping To:`,
     `  ${config.returnTo.name}`,
     `  ${config.returnTo.company}`,
-    `  ${config.returnTo.street}`,
+    ...[config.returnTo.street, config.returnTo.street2].filter(Boolean).map((l) => `  ${l}`),
     `  ${config.returnTo.city}, ${config.returnTo.state} ${config.returnTo.zip}`,
     '',
     `Tracking Number: ${label.trackingNumber}`,
