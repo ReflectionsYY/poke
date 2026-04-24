@@ -1,0 +1,52 @@
+name: Remote Desktop CI
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'remote-desktop/**'
+      - '.github/workflows/remote-desktop-ci.yml'
+  pull_request:
+    paths:
+      - 'remote-desktop/**'
+      - '.github/workflows/remote-desktop-ci.yml'
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        app: [signaling, host, viewer]
+    defaults:
+      run:
+        working-directory: remote-desktop/${{ matrix.app }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.x'
+
+      # --ignore-scripts skips nut-js's native build (needs MSVC on Windows).
+      # We only want to validate that package.json resolves.
+      - name: Install deps (no scripts)
+        run: npm install --ignore-scripts --no-audit --no-fund
+
+      - name: Syntax check all JS/CJS files
+        shell: bash
+        run: |
+          set -e
+          fail=0
+          while IFS= read -r -d '' f; do
+            case "$f" in
+              */node_modules/*) continue ;;
+            esac
+            # .cjs = CommonJS, .js honours the package.json "type" field.
+            if ! node --check "$f"; then
+              echo "::error file=$f::syntax error"
+              fail=1
+            fi
+          done < <(find . -type f \( -name '*.js' -o -name '*.cjs' -o -name '*.mjs' \) -print0)
+          exit $fail

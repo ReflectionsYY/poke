@@ -1,0 +1,16 @@
+{
+  "name": "remote-desktop-signaling",
+  "version": "0.1.0",
+  "description": "WebSocket signaling server that brokers WebRTC handshakes between a host and a viewer by session ID.",
+  "type": "module",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "ws": "^8.18.0"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
